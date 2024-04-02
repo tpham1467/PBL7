@@ -1,0 +1,53 @@
+version: '1'
+
+services:
+  redis:
+    image: redis:7.0.11-alpine
+    ports:
+      - 6379:6379
+  django:
+    container_name: django
+    build:
+      context: ./PBL7
+    command:
+      python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./PBL7:/usr/src/app
+    ports:
+      - ${PORT}:8000
+    environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+    depends_on:
+      - redis
+  celery:
+    container_name: celery
+    build:
+      context: ./PBL7
+    command:
+      celery --app=PBL7 worker -l INFO
+    volumes:
+      - ./PBL7:/usr/src/app
+    environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+    depends_on:
+      - redis
+  # flower:
+  #   image: mher/flower:0.9.7
+  #   command: ['flower', '--broker=redis://redis:6379/0', '--port=5555']
+  #   expose:
+  #     - 5555:5555
+  #   depends_on:
+  #     - redis
+  # nginx:
+  #   image: nginx:latest
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf
+  #     - ./htpasswd:/etc/nginx/.htpasswd
+  #   ports:
+  #     - 80:80
+  #   depends_on:
+  #     - flower

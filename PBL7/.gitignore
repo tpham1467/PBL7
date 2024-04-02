@@ -1,4 +1,5 @@
-ENVPBL7/
+./ENVPBL7/venv
+./ENVPY/venv
 db.sqlite3
 .env
 .DS_Store
