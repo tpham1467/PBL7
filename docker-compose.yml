@@ -5,57 +5,45 @@ services:
     image: redis:7.0.11-alpine
     ports:
       - 6379:6379
-  django:
-    container_name: django
+  api:
+    container_name: api
     build:
-      context: ./PBL7
+      context: ./API
     command:
-      python manage.py runserver 0.0.0.0:8000
+      uvicorn main:app --reload --host 0.0.0.0 --port $PORT
     volumes:
-      - ./PBL7:/usr/src/app
+      - ./API:/usr/src/app
     ports:
-      - ${PORT}:8000
-    environment:
-      - DEBUG=${DEBUG}
-      - SECRET_KEY=${SECRET_KEY}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - ${PORT}:${PORT}
     depends_on:
       - redis
   worker:
     container_name: worker
     build:
-      context: ./PBL7
+      context: ./API
     command:
-      celery --app=PBL7 worker -l INFO
+      watchmedo auto-restart --pattern=task.py -- celery --app=task.app worker --concurrency=1 --loglevel=DEBUG
+      # celery --app=task.app worker --concurrency=1 --loglevel=DEBUG
     volumes:
-      - ./PBL7:/usr/src/app
+      - ./API:/usr/src/app
     environment:
-      - DEBUG=${DEBUG}
-      - SECRET_KEY=${SECRET_KEY}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     depends_on:
-      - django
+      - api
       - redis
   dashboard:
-    build: ./PBL7
-    command: celery --broker=${CELERY_BROKER_URL} flower --port=5555
+    build: 
+      context: ./API
+    command: 
+      sh -c "cd ./ && celery --broker=${CELERY_BROKER_URL} flower --port=${DASHBOARD_FLOWER}"
     ports:
-      - 5555:5555
+      - ${DASHBOARD_FLOWER}:5555
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     depends_on:
-      - django
+      - api
       - redis
       - worker
-  # nginx:
-  #   image: nginx:latest
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf
-  #     - ./htpasswd:/etc/nginx/.htpasswd
-  #   ports:
-  #     - 80:80
-  #   depends_on:
-  #     - flower

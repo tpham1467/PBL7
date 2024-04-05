@@ -22,7 +22,7 @@ For window
 
 For Mac/Linux
 ```
-    python -m venv ENVPBL7
+    python3 -m venv ENVPBL7
 ```
 
 #### Activation your virtual environment (move to main folder first)
