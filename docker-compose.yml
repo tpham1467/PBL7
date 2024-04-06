@@ -1,0 +1,52 @@
+version: '1'
+
+services:
+  redis:
+    image: redis:7.0.11-alpine
+    ports:
+      - 6379:6379
+  web:
+    container_name: web
+    build:
+      context: ./PBL7
+    command:
+      python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./PBL7:/usr/src/app
+    ports:
+      - ${PORT}:8000
+    environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+    depends_on:
+      - redis
+  worker:
+    container_name: worker
+    build:
+      context: ./PBL7
+    command:
+      celery --app=PBL7 worker -l INFO
+    volumes:
+      - ./PBL7:/usr/src/app
+    environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - web
+      - redis
+  dashboard:
+    build: ./PBL7
+    command: celery --broker=${CELERY_BROKER_URL} flower --port=5555
+    ports:
+      - 5555:5555
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - web
+      - redis
+      - worker
