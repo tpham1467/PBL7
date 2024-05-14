@@ -1,0 +1,3 @@
+CONFIG_DATABASE = {
+    'DATABASE_NAME': "PBL7"
+}

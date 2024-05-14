@@ -1,0 +1,49 @@
+version: '1'
+
+services:
+  redis:
+    image: redis:7.0.11-alpine
+    ports:
+      - 6379:6379
+  api:
+    container_name: api
+    build:
+      context: ./API
+    command:
+      uvicorn main:app --reload --host 0.0.0.0 --port $PORT
+    volumes:
+      - ./API:/usr/src/app
+    ports:
+      - ${PORT}:${PORT}
+    depends_on:
+      - redis
+  worker:
+    container_name: worker
+    build:
+      context: ./API
+    command:
+      watchmedo auto-restart --pattern=task.py -- celery --app=task.app worker --concurrency=1 --loglevel=DEBUG
+      # celery --app=task.app worker --concurrency=1 --loglevel=DEBUG
+    volumes:
+      - ./API:/usr/src/app
+    environment:
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - api
+      - redis
+  dashboard:
+    build: 
+      context: ./API
+    command: 
+      sh -c "cd ./ && celery --broker=${CELERY_BROKER_URL} flower --port=${DASHBOARD_FLOWER}"
+    ports:
+      - ${DASHBOARD_FLOWER}:5555
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - api
+      - redis
+      - worker
