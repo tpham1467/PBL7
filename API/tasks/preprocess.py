@@ -3,7 +3,6 @@ from underthesea import word_tokenize
 
 import re
 import string
-import urllib
 import os
 
 def tokenize(text):
@@ -29,17 +28,18 @@ def remove_punctuation(text):
     return re.sub(regex, " ", text, 0)
 
 def remove_stopwords(text):
-    stops = urllib.request.urlopen('https://raw.githubusercontent.com/stopwords/vietnamese-stopwords/master/vietnamese-stopwords-dash.txt').read()
+    stops = open("./vietnamese-stopwords-dash.txt", "r", encoding="utf8").read()
     stopwords= [ x for x in stops.splitlines() ]
     return ' '.join([word for word in text.split() if word not in stopwords])
 
 def preprocess_text(text):
-    text.replace(u'\xa0', u' ')
+    text = text.replace(u'\xa0', u' ')
     
     text = tokenize(text)
     text = lowercase(text)
     text = remove_stopwords(text)
     text = remove_punctuation(text)
+    print(text)
     return text
 
 def preprocess_data (data_path, preprocess_path):
