@@ -1,8 +1,10 @@
 import pandas as pd
 from underthesea import word_tokenize
+
 import re
 import string
 import urllib
+import os
 
 def tokenize(text):
     return word_tokenize(text, format="text")
@@ -40,13 +42,22 @@ def preprocess_text(text):
     text = remove_punctuation(text)
     return text
 
-# def preprocess_data (data_path):
-
-    # Read file csv
-    # data = pd.read_csv("tgdd_product_description_cleaned.csv")
-
-    # Apply preprocess
-    # data['description'] = data['description'].apply(preprocess_text)
-
-    # Output preprocessed 
-    # data.to_csv("tgdd_product_description_cleaned_preprocessed.csv", index=False, encoding="utf-8-sig")
+def preprocess_data (data_path, preprocess_path):
+    #if file exists then read file
+    if os.path.exists(data_path):
+        # Read file csv
+        df = pd.read_csv(data_path, encoding="utf-8-sig")
+        # Apply preprocess
+        df['description'] = df['description'].apply(preprocess_text)
+        
+        #if preprocess file not exists then create new file
+        if not os.path.exists(preprocess_path):
+            # Output preprocessed 
+            df.to_csv(preprocess_path, index=False, encoding="utf-8-sig")
+            return "Data is preprocessed and has written to csv file"
+        else:
+            os.remove(preprocess_path)
+            print ("Found a csv file, deleting it...")
+            df.to_csv(preprocess_path, index=False, encoding="utf-8-sig")
+            return "Data is preprocessed and has written to csv file"
+        
