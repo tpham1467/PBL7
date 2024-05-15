@@ -1,7 +1,7 @@
 from celery import Celery
 import os
 from datetime import datetime
-from tasks import thegioididong
+from tasks import thegioididong, preprocess
 
 redis_url = os.getenv("REDIS_URL", "redis://redis:6379")
 
@@ -26,3 +26,12 @@ def crawl_category():
     print(categories)
     thegioididong.write_to_csv(categories, "./data/tgdt_categories.csv",["category", "full link"], False)
     thegioididong.driver.quit()
+    
+@app.task
+def preprocess_data():
+    print('-----Begin preprocess-----')
+    data_path = "./data/tgdt_description.csv"
+    preprocess_path = "./data/tgdt_description_preprocessed.csv"
+    preprocess.preprocess_data(data_path = data_path, preprocess_path = preprocess_path)
+    print('-----End preprocess-----')
+    
