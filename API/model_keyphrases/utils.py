@@ -3,7 +3,7 @@ import torch
 import numpy as np
 
 from model_keyphrases.dataset import EntityDataset
-from model_keyphrases.global_var import MODEL_PATH, TOKENIZER
+from model_keyphrases.global_var import TOKENIZER
 from model_keyphrases.model import EntityModel
 
 global device
@@ -61,8 +61,9 @@ global num_tag
 num_tag = len(list(enc_tag.classes_))
 
 def _load_model():
-    model = EntityModel(num_tag=num_tag)
-    model.load_state_dict(torch.load(MODEL_PATH+f"_{9}.bin", map_location=device))
+    # model = EntityModel(num_tag=num_tag)
+    # model.load_state_dict(torch.load(MODEL_PATH+f"_{9}.bin", map_location=device))
+    model = EntityModel.from_pretrained("Soraki5th/bert-bilstm-crf-mobile-phone")
     model.to(device)
     print("model loaded successfully!")
     return model

@@ -3,13 +3,16 @@ import transformers
 import torch.nn as nn
 from torchcrf import CRF
 
-from model_keyphrases.global_var import BASE_MODEL_PATH
+# from model_keyphrases.global_var import BASE_MODEL_PATH
+from model_keyphrases.global_var import EMBEDDING_MODEL_NAME
 
-class EntityModel(nn.Module):
+from huggingface_hub import PyTorchModelHubMixin
+
+class EntityModel(nn.Module, PyTorchModelHubMixin):
     def __init__(self, num_tag):
         super(EntityModel, self).__init__()
         self.num_tag = num_tag
-        self.bert = transformers.BertModel.from_pretrained(BASE_MODEL_PATH,return_dict=False)
+        self.bert = transformers.BertModel.from_pretrained(EMBEDDING_MODEL_NAME,return_dict=False)
         self.bilstm= nn.LSTM(768, 1024 // 2, num_layers=1, bidirectional=True, batch_first=True)
 
         self.dropout_tag = nn.Dropout(0.3)
