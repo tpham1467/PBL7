@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from redis import Redis
 from redis.lock import Lock as RedisLock
 from celery.result import AsyncResult
+from database.mysql_connector import insert
 import task
 # entities
 from entities import TaskOut
@@ -30,6 +31,7 @@ def start_preprocess() -> TaskOut:
             return _to_task_out(r)
         else:
             # the last task is still running!
+            print("TASK ID: ", task_id)
             raise HTTPException(
                 status_code=400, detail="A task is already being executed"
             )
@@ -37,4 +39,6 @@ def start_preprocess() -> TaskOut:
         lock.release()
         
 def _to_task_out(r: AsyncResult) -> TaskOut:
+    print("Insert Task into DB...")
+    insert(table='jobs', id=r.task_id, status=r.status)
     return TaskOut(id=r.task_id, status=r.status)
