@@ -28,9 +28,9 @@ def initialTable():
     # logs
     execute_mysql.execute("CREATE TABLE IF NOT EXISTS logs (id INT AUTO_INCREMENT PRIMARY KEY, created_at DATETIME, log TEXT)")
     # jobs
-    execute_mysql.execute("CREATE TABLE IF NOT EXISTS jobs (id INT AUTO_INCREMENT PRIMARY KEY, type VARCHAR(255), step INT, status VARCHAR(255),created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+    execute_mysql.execute("CREATE TABLE IF NOT EXISTS jobs (id VARCHAR(255) PRIMARY KEY, type VARCHAR(255), step INT, status VARCHAR(255),created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
     # job_results
-    execute_mysql.execute("CREATE TABLE IF NOT EXISTS job_results (id INT AUTO_INCREMENT PRIMARY KEY, job_id INT, total_record INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+    execute_mysql.execute("CREATE TABLE IF NOT EXISTS job_results (id INT AUTO_INCREMENT PRIMARY KEY, job_id VARCHAR(255), total_record INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
     print("-------Done created tables-------")
 
 def getAll(table: str):
