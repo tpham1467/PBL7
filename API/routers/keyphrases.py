@@ -4,7 +4,7 @@ import model_keyphrases.utils as utils
 
 # Khởi tạo model.
 global model 
-model = utils._load_model()
+model = utils._load_model(verbose = True)
 
 # Define the data model using Pydantic
 class PredictRequest(BaseModel):
@@ -32,3 +32,16 @@ async def predict(request: PredictRequest):
     except Exception as e:
         # Xử lý lỗi
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get('/save-model')
+async def save_model():
+    try:
+        global model
+        model = utils._save_model(verbose=True)
+        
+        details = { "detail" : "Model saved successfully"}
+        return details
+    except Exception as e:
+        # Xử lý lỗi
+        raise HTTPException(status_code=500, detail=str(e))
+    

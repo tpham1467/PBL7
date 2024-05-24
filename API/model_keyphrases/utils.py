@@ -1,3 +1,4 @@
+import os
 import joblib
 import torch
 import numpy as np
@@ -60,12 +61,48 @@ enc_tag = meta_data["enc_tag"]
 global num_tag
 num_tag = len(list(enc_tag.classes_))
 
-def _load_model():
+# Define the local path and the Hugging Face model identifier
+local_model_path = "./model_keyphrases/pretrained_model/bert-bilstm-crf-mobile-phone"
+huggingface_model_identifier = "Soraki5th/bert-bilstm-crf-mobile-phone"
+
+def _load_model(verbose = False):
     # model = EntityModel(num_tag=num_tag)
     # model.load_state_dict(torch.load(MODEL_PATH+f"_{9}.bin", map_location=device))
-    model = EntityModel.from_pretrained("Soraki5th/bert-bilstm-crf-mobile-phone")
+    # model = EntityModel.from_pretrained("Soraki5th/bert-bilstm-crf-mobile-phone")
+    print("Loading model...")
+    
+    # Check if the model is saved locally
+    if os.path.exists(local_model_path):
+        # Load the model from the local path
+        if verbose:
+            print("Loading model from local path...")
+        model = EntityModel.from_pretrained(local_model_path)
+    else:
+        if verbose:
+            print("Loading model from hugging face...")
+        # Load the model from the Hugging Face Hub
+        model = EntityModel.from_pretrained(huggingface_model_identifier)
+        if verbose:
+            print("Saving model...")
+        # Save the model locally
+        model.save_pretrained(local_model_path)
+    # Move the model to the specified device
     model.to(device)
     print("model loaded successfully!")
+    return model
+
+def _save_model(verbose = False):
+    if verbose:
+        print("Loading model from hugging face...")
+    # Load the model from the Hugging Face Hub
+    model = EntityModel.from_pretrained(huggingface_model_identifier)
+    if verbose:
+        print("Saving model...")
+    # Save the model locally
+    model.save_pretrained(local_model_path)
+    # Move the model to the specified device
+    model.to(device)
+    
     return model
 
 def _predict(model, sentence):
