@@ -11,7 +11,7 @@ from huggingface_hub import PyTorchModelHubMixin
 
 bert_model = None
 # Define the local path and the Hugging Face model identifier
-local_model_path = "./model_keyphrases/pretrained_model/bert-base-uncased"
+local_model_path = "./model_keyphrases/pretrained_model/" + EMBEDDING_MODEL_NAME
 # Check if the model is saved locally
 if os.path.exists(local_model_path):
     # Load the model from the local path
