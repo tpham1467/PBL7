@@ -1,10 +1,10 @@
 # lib
+from config.fast_api import config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config.fast_api import config
-#route
-from routers import test, data_file, crawl, cli, db, preprocess, tracking
+# route
+from routers import cli, crawl, data_file, db, preprocess, test, tracking
 
 app = FastAPI()
 
@@ -14,12 +14,12 @@ origins = [
 ]
 
 app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(test.router)
 app.include_router(data_file.router)
