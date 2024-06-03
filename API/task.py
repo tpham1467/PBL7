@@ -42,5 +42,6 @@ def preprocess_data():
     data_path = file_management.__path__['crawl_data'] + '/' + file_management.__file_name__['tgdd_description'] + '.csv'
     preprocess_path = file_management.__path__['crawl_data'] + '/' + file_management.__file_name__['tgdd_description_preprocessed'] + '.csv'
     preprocess.preprocess_data(data_path = data_path, preprocess_path = preprocess_path)
+    update_jobs(status='SUCCESS',task_key=config.__TASK_KEY__['preprocess'])
     print('-----End preprocess-----')
     

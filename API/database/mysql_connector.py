@@ -1,4 +1,5 @@
 from datetime import datetime
+import mysql.connector
 import mysql
 import os
 from services import file_management

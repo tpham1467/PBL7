@@ -28,7 +28,7 @@ def start_preprocess() -> TaskOut:
             r = preprocess_data.delay()
             print(f"{r.task_id}")
             redis_instance.set(config.__TASK_KEY__['preprocess'], r.task_id)
-            return _to_task_out(r)
+            return _to_task_out(r, config.__TASK_KEY__['preprocess'])
         else:
             # the last task is still running!
             print("TASK ID: ", task_id)
@@ -38,7 +38,7 @@ def start_preprocess() -> TaskOut:
     finally:
         lock.release()
         
-def _to_task_out(r: AsyncResult) -> TaskOut:
+def _to_task_out(r: AsyncResult, type: str) -> TaskOut:
     print("Insert Task into DB...")
-    insert(table='jobs', id=r.task_id, status=r.status)
+    insert(table='jobs', id=r.task_id, type=type, status=r.status)
     return TaskOut(id=r.task_id, status=r.status)
