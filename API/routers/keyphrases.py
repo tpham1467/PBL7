@@ -4,7 +4,7 @@ import model_keyphrases.utils as utils
 
 # Khởi tạo model.
 global model 
-model = utils._load_model(verbose = True)
+# model = utils._load_model(verbose = True)
 
 # Define the data model using Pydantic
 class PredictRequest(BaseModel):

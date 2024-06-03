@@ -1,6 +1,8 @@
 from datetime import datetime
 import mysql.connector
-import os
+import uuid
+from config.task_key import __TASK_KEY__
+from services import file_management
 from config import CONFIG_DATABASE
 
 
@@ -19,6 +21,28 @@ def checkMysqlConnect():
     # print(os.environ['DB_DATABASE'])
     print(mysqldb.cursor())
 
+def insert_jobs():
+    sql = "INSERT INTO jobs (id, type, step, status) VALUES "
+
+    # List to store individual value tuples
+    values = []
+
+    # Iterate through __TASK_KEY__ and prepare the value tuples
+    for key, type_value in __TASK_KEY__.items():
+        print(__TASK_KEY__.items())
+        job_id = str(uuid.uuid4())  # Generating a unique ID for each row
+        step = 0  # Assuming initial step is 0
+        status = 'pending'
+        values.append(f"('{job_id}', '{type_value}', {step}, '{status}')")
+
+    # Join the value tuples into a single string
+    values_str = ", ".join(values)
+
+    # Final SQL query
+    sql += values_str
+    print(sql)
+    execute_mysql = mysqldb.cursor(buffered=True)
+    execute_mysql.execute(sql)
 
 def initialTable():
     print("-------Begin create tables-------")
@@ -31,7 +55,16 @@ def initialTable():
     execute_mysql.execute("CREATE TABLE IF NOT EXISTS jobs (id VARCHAR(255) PRIMARY KEY, type VARCHAR(255), step INT, status VARCHAR(255),created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
     # job_results
     execute_mysql.execute("CREATE TABLE IF NOT EXISTS job_results (id INT AUTO_INCREMENT PRIMARY KEY, job_id VARCHAR(255), total_record INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
-    print("-------Done created tables-------")
+    print("__________Done created tables__________")
+    print("__________Begin create file and directory__________")
+    insert_file_data(file_management.__file_name__['tgdd_end_page_link'], file_management.__path__['crawl_data'] + '/' + file_management.__file_name__['tgdd_end_page_link'] + '.csv', '100KB' )
+    insert_file_data(file_management.__file_name__['tgdd_end_page_link'], file_management.__path__['crawl_data'] + '/' + file_management.__file_name__['tgdd_end_page_link'] + '.csv', '100KB' )
+    insert_file_data(file_management.__file_name__['tgdd_end_page_link'], file_management.__path__['crawl_data'] + '/' + file_management.__file_name__['tgdd_end_page_link'] + '.csv', '100KB' )
+    print("__________Inserted successfully__________")
+    print("__________Begin create jobs__________")
+    insert_jobs()
+    print("__________Inserted successfully__________")
+
 
 def getAll(table: str):
     execute_mysql = mysqldb.cursor(buffered=True)
@@ -74,3 +107,17 @@ def write_log(log: str):
     values = (current_time, log)
     execute_mysql.execute(insert_query, values)
     mysqldb.commit()
+
+def insert_file_data(name, dir, size):
+    cursor = mysqldb.cursor()
+    query = "INSERT INTO file_data (name, dir, size) VALUES (%s, %s, %s)"
+    values = (name, dir, size)
+    cursor.execute(query, values)
+    mysqldb.commit()
+
+def update_jobs(task_key, status):
+    cursor = mysqldb.cursor()
+    query = "UPDATE jobs SET status = %s where type = %s"
+    cursor.execute(query, (status, task_key))
+    mysqldb.commit()
+

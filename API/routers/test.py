@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from redis import Redis
 from redis.lock import Lock as RedisLock
 from celery.result import AsyncResult
+import config
 from database.mysql_connector import checkMysqlConnect, getAll, insert
 import task
 # entities
@@ -16,7 +17,7 @@ router = APIRouter(prefix="/test")
 
 redis_instance = Redis.from_url(task.redis_url)
 lock = RedisLock(redis_instance, name="task_id")
-REDIS_TASK_KEY = "current_task"
+REDIS_TASK_KEY = "start_task"
 
 @router.get("/call", response_description="Test API")
 async def index():
@@ -30,12 +31,12 @@ def start() -> TaskOut:
         if not lock.acquire(blocking_timeout=4):
             raise HTTPException(status_code=500, detail="Could not acquire lock")
 
-        task_id = redis_instance.get(REDIS_TASK_KEY)
+        task_id = redis_instance.get(config.__TASK_KEY__['test_task']) # ---> Get your name task here
         if task_id is None or task.app.AsyncResult(task_id).ready():
             # no task was ever run, or the last task finished already
             r = dummy_task.delay()
             print(f"{r.task_id}")
-            redis_instance.set(REDIS_TASK_KEY, r.task_id)
+            redis_instance.set(config.__TASK_KEY__['test_task'], r.task_id) # ---> Set your name task here
             return _to_task_out(r)
         else:
             # the last task is still running!
