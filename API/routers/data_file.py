@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.responses import FileResponse
 
 from services import file_management
 
@@ -10,4 +11,5 @@ def get_all_file(type: str = None):
 
 @router.get("/download")
 def download(id: str = None):
-    return f"hehe {id}"
+    path = "./data/tgdt_categories.csv"  # Đường dẫn tới file của bạn
+    return FileResponse(path, filename="tgdt_categories.csv")
