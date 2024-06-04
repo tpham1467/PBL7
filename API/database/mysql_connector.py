@@ -43,6 +43,7 @@ def insert_jobs():
     print(sql)
     execute_mysql = mysqldb.cursor(buffered=True)
     execute_mysql.execute(sql)
+    mysqldb.commit()
 
 def initialTable():
     print("-------Begin create tables-------")
