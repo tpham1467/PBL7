@@ -7,7 +7,6 @@ import os
 
 def tokenize(text):
     return word_tokenize(text, format="text")
-    return ""
 
 #Lowercase
 def lowercase(text):
