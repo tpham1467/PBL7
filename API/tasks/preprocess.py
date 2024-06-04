@@ -1,12 +1,12 @@
 import pandas as pd
-# from underthesea import word_tokenize
+from underthesea import word_tokenize
 
 import re
 import string
 import os
 
 def tokenize(text):
-    # return word_tokenize(text, format="text")
+    return word_tokenize(text, format="text")
     return ""
 
 #Lowercase
