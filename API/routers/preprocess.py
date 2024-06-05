@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from redis import Redis
 from redis.lock import Lock as RedisLock
 from celery.result import AsyncResult
-from database.mysql_connector import insert
+from database.mysql_connector import update_jobs_by_task_id, update_jobs
 import config
 import task
 # entities
@@ -23,15 +23,15 @@ def start_preprocess() -> TaskOut:
             raise HTTPException(status_code=500, detail="Could not acquire lock")
 
         task_id = redis_instance.get(config.__TASK_KEY__['preprocess'])
+        print(task_id)
         if task_id is None or task.app.AsyncResult(task_id).ready():
             # no task was ever run, or the last task finished already
+            update_jobs(task_key=config.__TASK_KEY__['preprocess'], status='PENDING')
             r = preprocess_data.delay()
-            print(f"{r.task_id}")
             redis_instance.set(config.__TASK_KEY__['preprocess'], r.task_id)
             return _to_task_out(r, config.__TASK_KEY__['preprocess'])
         else:
             # the last task is still running!
-            print("TASK ID: ", task_id)
             raise HTTPException(
                 status_code=400, detail="A task is already being executed"
             )
@@ -39,6 +39,6 @@ def start_preprocess() -> TaskOut:
         lock.release()
         
 def _to_task_out(r: AsyncResult, type: str) -> TaskOut:
-    print("Insert Task into DB...")
-    insert(table='jobs', id=r.task_id, type=type, status=r.status)
+    print("Update Task into DB...")
+    update_jobs_by_task_id(type, task_id=r.task_id)
     return TaskOut(id=r.task_id, status=r.status)
