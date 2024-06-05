@@ -23,7 +23,7 @@ def dummy_task():
 @app.task
 def crawl_category_task():
     print('-----Begin crawl-----')
-    update_jobs(config.__TASK_KEY__['preprocess'], 'IN_PROGRESS')
+    update_jobs(config.__TASK_KEY__['tgdd_crawl_category'], 'IN_PROGRESS')
     try:
         thegioididong.driver
         base_link = "https://www.thegioididong.com/"
@@ -34,18 +34,24 @@ def crawl_category_task():
         dir = file_management.__path__['crawl_data'] + '/' + file_management.__file_name__['tgdd_categories'] + '.csv'
         thegioididong.write_to_csv(categories, dir, ["category", "full link"], False)
     except:
-        update_jobs(config.__TASK_KEY__['preprocess'], 'FAILED')
+        update_jobs(config.__TASK_KEY__['tgdd_crawl_category'], 'FAILED')
 
-    update_jobs(config.__TASK_KEY__['preprocess'], 'SUCCESS')
+    update_jobs(config.__TASK_KEY__['tgdd_crawl_category'], 'SUCCESS')
     print('-----End crawl-----')
     return categories
     
 @app.task
 def preprocess_data():
     print('-----Begin preprocess-----')
-    data_path = file_management.__path__['crawl_data'] + '/' + file_management.__file_name__['tgdd_description'] + '.csv'
-    preprocess_path = file_management.__path__['crawl_data'] + '/' + file_management.__file_name__['tgdd_description_preprocessed'] + '.csv'
-    preprocess.preprocess_data(data_path = data_path, preprocess_path = preprocess_path)
+    update_jobs(config.__TASK_KEY__['preprocess'], 'IN_PROGRESS')
+    try:
+        data_path = file_management.__path__['crawl_data'] + '/' + file_management.__file_name__['tgdd_description'] + '.csv'
+        preprocess_path = file_management.__path__['crawl_data'] + '/' + file_management.__file_name__['tgdd_description_preprocessed'] + '.csv'
+        preprocess.preprocess_data(data_path = data_path, preprocess_path = preprocess_path)
+    except:
+        update_jobs(config.__TASK_KEY__['preprocess'], 'FAILED')
+        
+    update_jobs(config.__TASK_KEY__['preprocess'], 'SUCCESS')
     print('-----End preprocess-----')
 
 @app.task
@@ -85,8 +91,8 @@ def crawl_product_link():
             result.append(data)
             thegioididong.write_to_csv(data, product_link_dir, ["name", "category", "Link"], False, True)
     except:
-        update_jobs(config.__TASK_KEY__['tgdd_crawl_end_page_link'], 'FAILED')
-    update_jobs(config.__TASK_KEY__['tgdd_crawl_end_page_link'], 'SUCCESS')
+        update_jobs(config.__TASK_KEY__['tgdd_crawl_product_link'], 'FAILED')
+    update_jobs(config.__TASK_KEY__['tgdd_crawl_product_link'], 'SUCCESS')
     # thegioididong.driver.quit()
     print('-----End crawl-----')
     return result
