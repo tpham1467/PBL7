@@ -5,3 +5,4 @@ db.sqlite3
 __pycache__
 /API/model_keyphrases/pretrained_model
 /.venv
+/KEYPHRASE/model_keyphrases/pretrained_model
