@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from redis import Redis
 from redis.lock import Lock as RedisLock
 from celery.result import AsyncResult
+from database.mysql_connector import get_all_jobs
 import config
 import task
 
@@ -14,15 +15,9 @@ router = APIRouter(prefix="/tracking")
 
 @router.get('/')
 def tracking():
-    task_keys = list(config.__TASK_KEY__.values())
-    tasks = []
-    for task_key in task_keys:
-        task_id = redis_instance.get(task_key)
-        task_object = task.app.AsyncResult(task_key)
-        if task_object is not None: 
-            tasks.append({'id': task_id, 'name': task_key, 'state': task_object.state})
-
-    return tasks
+    result = get_all_jobs()
+    print(result)
+    return result
 
 def _to_task_out(r: AsyncResult) -> TaskOut:
     return TaskOut(id=r.task_id, status=r.status)
