@@ -9,24 +9,26 @@ from model_keyphrases.global_var import EMBEDDING_MODEL_NAME
 
 from huggingface_hub import PyTorchModelHubMixin
 
-bert_model = None
-# Define the local path and the Hugging Face model identifier
-local_model_path = "./model_keyphrases/pretrained_model/" + EMBEDDING_MODEL_NAME
-# Check if the model is saved locally
-if os.path.exists(local_model_path):
-    # Load the model from the local path
-    bert_model = transformers.BertModel.from_pretrained(local_model_path)
-else:
-    # Load the model from the Hugging Face Hub
-    bert_model = transformers.BertModel.from_pretrained(EMBEDDING_MODEL_NAME,return_dict=False)
-    # Save the model locally
-    bert_model.save_pretrained(local_model_path)
+def load_bert_model():
+    # Define the local path and the Hugging Face model identifier
+    local_model_path = "./model_keyphrases/pretrained_model/" + EMBEDDING_MODEL_NAME
+    # Check if the model is saved locally
+    if os.path.exists(local_model_path):
+        # Load the model from the local path
+        bert_model = transformers.BertModel.from_pretrained(local_model_path)
+    else:
+        # Load the model from the Hugging Face Hub
+        bert_model = transformers.BertModel.from_pretrained(EMBEDDING_MODEL_NAME,return_dict=False)
+        # Save the model locally
+        bert_model.save_pretrained(local_model_path)
+    return bert_model
+    
 
 class EntityModel(nn.Module, PyTorchModelHubMixin):
     def __init__(self, num_tag):
         super(EntityModel, self).__init__()
         self.num_tag = num_tag
-        self.bert = bert_model
+        self.bert = load_bert_model()
         self.bilstm= nn.LSTM(768, 1024 // 2, num_layers=1, bidirectional=True, batch_first=True)
 
         self.dropout_tag = nn.Dropout(0.3)
