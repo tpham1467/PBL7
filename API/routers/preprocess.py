@@ -26,7 +26,7 @@ def start_preprocess() -> TaskOut:
         print(task_id)
         if task_id is None or task.app.AsyncResult(task_id).ready():
             # no task was ever run, or the last task finished already
-            update_jobs(task_key=config.__TASK_KEY__['tgdd_crawl_category'], status='PENDING')
+            update_jobs(task_key=config.__TASK_KEY__['preprocess'], status='PENDING')
             r = preprocess_data.delay()
             redis_instance.set(config.__TASK_KEY__['preprocess'], r.task_id)
             return _to_task_out(r, config.__TASK_KEY__['preprocess'])
