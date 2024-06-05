@@ -130,11 +130,8 @@ def update_jobs_by_task_id(task_key, task_id):
     mysqldb.commit()
 
 def get_all_jobs():
-    cursor = mysqldb.cursor()
-    query = "SELECT * FROM jobs"
     try:
-        cursor.execute(query)
-        results = cursor.fetchall()
+        results = getAll("jobs")
         jobs = []
         for row in results:
             job_id, job_type, step, status, created_at = row
@@ -148,5 +145,3 @@ def get_all_jobs():
     except Exception as e:
         print("Error fetching jobs:", e)
         return []
-    finally:
-        cursor.close()
