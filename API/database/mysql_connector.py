@@ -1,6 +1,7 @@
 from datetime import datetime
 import mysql.connector
 import uuid
+from entities import Job
 from config.task_key import __TASK_KEY__
 from services import file_management
 from config import CONFIG_DATABASE
@@ -32,7 +33,7 @@ def insert_jobs():
         print(__TASK_KEY__.items())
         job_id = str(uuid.uuid4())  # Generating a unique ID for each row
         step = 0  # Assuming initial step is 0
-        status = 'pending'
+        status = 'PENDING'
         values.append(f"('{job_id}', '{type_value}', {step}, '{status}')")
 
     # Join the value tuples into a single string
@@ -122,3 +123,25 @@ def update_jobs(task_key, status):
     cursor.execute(query, (status, task_key))
     mysqldb.commit()
 
+def update_jobs_by_task_id(task_key, task_id):
+    cursor = mysqldb.cursor()
+    query = "UPDATE jobs SET id = %s where type = %s"
+    cursor.execute(query, (task_id, task_key))
+    mysqldb.commit()
+
+def get_all_jobs():
+    try:
+        results = getAll("jobs")
+        jobs = []
+        for row in results:
+            job_id, job_type, step, status, created_at = row
+            # Convert MySQL timestamp to datetime object if necessary
+            if isinstance(created_at, datetime):
+                created_at = created_at.strftime('%Y-%m-%d %H:%M:%S')
+            job = Job(job_id, job_type, step, status, created_at)
+            jobs.append(job)
+        return jobs
+
+    except Exception as e:
+        print("Error fetching jobs:", e)
+        return []
