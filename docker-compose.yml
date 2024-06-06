@@ -47,3 +47,14 @@ services:
       - api
       - redis
       - worker
+  key_phrase:
+    build:
+      context: ./KEYPHRASE
+    command:
+      uvicorn main:app --reload --host 0.0.0.0 --port $KEYPHRASE
+    volumes:
+      - ./KEYPHRASE:/usr/src/app
+    ports:
+      - ${KEYPHRASE}:${KEYPHRASE}
+    depends_on:
+      - api

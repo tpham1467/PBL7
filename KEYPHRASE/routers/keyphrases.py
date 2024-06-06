@@ -2,9 +2,17 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import model_keyphrases.utils as utils
 
+from config.env import read_config_model
+
 # Khởi tạo model.
-global model 
-model = utils._load_model(verbose = True)
+global model
+
+model_variables = read_config_model()
+print(model_variables)
+if model_variables['MODEL_LOAD'] == 'True':
+    model = utils._load_model(verbose = True)
+else:
+    model = None
 
 # Define the data model using Pydantic
 class PredictRequest(BaseModel):
@@ -40,6 +48,18 @@ async def save_model():
         model = utils._save_model(verbose=True)
         
         details = { "detail" : "Model saved successfully"}
+        return details
+    except Exception as e:
+        # Xử lý lỗi
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get('/load-model')
+async def load_model():
+    try:
+        global model
+        model = utils._load_model(verbose=True)
+        
+        details = { "detail" : "Model loaded successfully"}
         return details
     except Exception as e:
         # Xử lý lỗi

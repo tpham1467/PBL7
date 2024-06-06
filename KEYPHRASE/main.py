@@ -2,9 +2,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config.fast_api import config
 #route
-from routers import test, data_file, crawl, cli, db, preprocess, tracking
+from routers import keyphrases
 
 app = FastAPI()
 
@@ -21,10 +20,4 @@ app.add_middleware(
         allow_headers=["*"],
     )
 
-app.include_router(test.router)
-app.include_router(data_file.router)
-app.include_router(crawl.router)
-app.include_router(cli.router)
-app.include_router(db.router)
-app.include_router(preprocess.router)
-app.include_router(tracking.router)
+app.include_router(keyphrases.router)
