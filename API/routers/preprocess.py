@@ -2,7 +2,11 @@
 import config
 import task
 from celery.result import AsyncResult
-from database.mysql_connector import update_jobs, update_jobs_by_task_id
+from database.mysql_connector import (
+    insert_preprocess,
+    update_jobs,
+    update_jobs_by_task_id,
+)
 
 # entities
 from entities import TaskOut
@@ -22,7 +26,7 @@ def start_preprocess() -> TaskOut:
     try:
         if not lock.acquire(blocking_timeout=4):
             raise HTTPException(status_code=500, detail="Could not acquire lock")
-
+        insert_preprocess()
         task_id = redis_instance.get(config.__TASK_KEY__["preprocess"])
         print(task_id)
         if task_id is None or task.app.AsyncResult(task_id).ready():
