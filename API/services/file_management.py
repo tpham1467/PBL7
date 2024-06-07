@@ -2,6 +2,7 @@ from os import listdir
 import os
 from os.path import isfile, join
 from typing import List
+from database import mysql_connector
 
 from pydantic import BaseModel
 
@@ -28,11 +29,46 @@ def get_human_readable_size(size: int) -> str:
     return f"{size:.2f} {unit}"
 
 def getAllFile(type: str = None) -> List[FileData]:
-    files = [f for f in listdir(__path__[type]) if isfile(join(__path__[type], f))]
-    file_data_list = []
-    for file in files:
-        file_path = join(__path__[type], file)
-        file_size = get_human_readable_size(os.path.getsize(file_path))
-        file_data = FileData(name=file, dir=__path__[type], size=file_size)
-        file_data_list.append(file_data)
-    return file_data_list
+    
+    file_data_list = mysql_connector.getAll('file_data')
+    result = []
+    for file in file_data_list:
+        result.append(FileData(file[1], file[2], file[3], file[4]))
+    return result
+
+def insertFileDataService(dir: str):
+    """
+    following the dir, insert file data if not exist
+
+    Args:
+    dir (str): The path to the file.
+
+    Returns:
+    void
+    """
+    try:
+        if not os.path.isfile(dir):
+            raise FileNotFoundError(f"The file '{dir}' does not exist.")
+        file_name = os.path.basename(dir)
+        result = mysql_connector.get_all_by_conditional(
+            'file_data', 
+            f"name LIKE '%{dir}%'", ['*'])
+        file_size = os.path.getsize(dir)
+
+        if (len(result)== 0):
+            mysql_connector.insert_file_data(name=file_name, dir=dir, size=file_size)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return None, None
+    
+def get_file_by_name(name: str):
+    result = mysql_connector.get_all_by_conditional(
+            'file_data', 
+            f"name = '{name}'", ['*'])
+    file = FileData(result[0][1], result[0][2], result[0][3], result[0][4])
+    print (f"found file {file.name} dir {file.dir}")
+    return file
+
+def process_data_file_name(dir: str):
+    return os.path.basename(dir)

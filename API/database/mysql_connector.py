@@ -4,14 +4,15 @@ import uuid
 from entities import Job
 from config.task_key import __TASK_KEY__
 from services import file_management
-from config import CONFIG_DATABASE
+from config import read_config_api
 
-
+config_db = read_config_api('DB_')
+print(config_db)
 mysqldb = mysql.connector.connect(
-  host="host.docker.internal",
-  user="root",
-  password="root",
-  database=CONFIG_DATABASE['DATABASE_NAME']
+  host=config_db['DB_HOST'],
+  user=config_db['DB_USERNAME'],
+  password=config_db['DB_PASSWORD'],
+  database=config_db['DB_DATABASE_NAME'],
 )
 
 
@@ -115,7 +116,17 @@ def insert_file_data(name, dir, size):
     query = "INSERT INTO file_data (name, dir, size) VALUES (%s, %s, %s)"
     values = (name, dir, size)
     cursor.execute(query, values)
+    write_log(query)
     mysqldb.commit()
+
+def get_all_by_conditional(table: str, conditions: str, selected_columns = ['*']):
+    with mysqldb.cursor() as cursor:
+        columns = ", ".join(selected_columns)
+        query = f"SELECT {columns} FROM {table} WHERE {conditions}"
+        print(query)
+        cursor.execute(query)
+        results = cursor.fetchall()
+    return results
 
 def update_jobs(task_key, status):
     cursor = mysqldb.cursor()
