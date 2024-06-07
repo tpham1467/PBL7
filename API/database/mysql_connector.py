@@ -10,9 +10,10 @@ from services import file_management
 config_db = read_config_api("DB_")
 print(config_db)
 mysqldb = mysql.connector.connect(
+    # host="host.docker.internal",
     host=config_db["DB_HOST"],
-    user=config_db["DB_USERNAME"],
-    password=config_db["DB_PASSWORD"],
+    user="root",
+    password="root",
     database=config_db["DB_DATABASE_NAME"],
 )
 
@@ -48,6 +49,30 @@ def insert_jobs():
     execute_mysql = mysqldb.cursor(buffered=True)
     execute_mysql.execute(sql)
     mysqldb.commit()
+
+
+def insert_preprocess():
+    job_results = getAll("job_results")
+    print(f"job_results: {job_results}")
+    if not job_results:
+        table_name = "job_results"
+        initial_record = 0
+        preprocess_tasks = [
+            "tokenize",
+            "lowercase",
+            "remove_stopwords",
+            "remove_punctuation",
+        ]
+
+        for preprocess_task in preprocess_tasks:
+            insert(
+                table_name,
+                job_id=preprocess_task,
+                total_record=initial_record,
+                created_at=datetime.now(),
+            )
+    else:
+        print("job_results table has value")
 
 
 def initialTable():
@@ -179,6 +204,23 @@ def update_jobs_by_task_id(task_key, task_id):
     mysqldb.commit()
 
 
+def update_preprocess_tasks(job_id, total_record, created_at=None):
+    print(f"____UPDATE PREPROCESS TASK____: {job_id}, {total_record}")
+    if created_at is None:
+        created_at = datetime.now()
+    prev_total_record = get_total_record(job_id)
+    if prev_total_record != total_record:
+        try:
+            with mysqldb.cursor() as cursor:
+                query = "UPDATE job_results SET total_record=%s, created_at=%s WHERE job_id=%s"
+                cursor.execute(query, (total_record, created_at, job_id))
+            mysqldb.commit()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            mysqldb.rollback()
+    print(f"____UPDATE PREPROCESS TASK DONE____: {job_id}, {total_record}")
+
+
 def get_all_jobs():
     try:
         results = getAll("jobs")
@@ -195,3 +237,22 @@ def get_all_jobs():
     except Exception as e:
         print("Error fetching jobs:", e)
         return []
+
+
+def get_tasks_status() -> list:
+    cursor = mysqldb.cursor(dictionary=True)
+    query = "SELECT type, status FROM jobs"
+    cursor.execute(query)
+    return cursor.fetchall()
+
+
+def get_task_status(type: str) -> str:
+    cursor = mysqldb.cursor(dictionary=True)
+    query = "SELECT status FROM jobs WHERE type= %s"
+    cursor.execute(query)
+
+    return cursor.fetchone()
+
+
+def get_total_record(job_id: str):
+    return get_all_by_conditional("job_results", f"job_id='{job_id}'", ["total_record"])

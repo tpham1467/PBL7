@@ -1,8 +1,8 @@
 import os
-import joblib
-import torch
-import numpy as np
 
+import joblib
+import numpy as np
+import torch
 from model_keyphrases.dataset import EntityDataset
 from model_keyphrases.global_var import TOKENIZER
 from model_keyphrases.model import EntityModel
@@ -10,13 +10,14 @@ from model_keyphrases.model import EntityModel
 global device
 device = torch.device("cpu")
 
+
 def predict_sentence(model, sentence, enc_tag):
     sentence = sentence.split()
     test_dataset = EntityDataset(
         texts=[sentence],
         # pos=[[0] * len(sentence)],
         tags=[[0] * len(sentence)],
-        enc_tag=enc_tag
+        enc_tag=enc_tag,
     )
 
     with torch.no_grad():
@@ -36,11 +37,11 @@ def reverse_tokenize(ids, tags):
     tags_list = []
     for token_id, tag in zip(ids, tags):
         token = TOKENIZER.decode(token_id)
-        token = token.replace(' ', '')
+        token = token.replace(" ", "")
         token_array = np.array(list(token))
-        token_string = ''.join(token_array)
-        if token_string.startswith('##'):
-            token_string = token_string.replace('##', '')
+        token_string = "".join(token_array)
+        if token_string.startswith("##"):
+            token_string = token_string.replace("##", "")
             if tokens:
                 tokens[-1] += token_string
                 # Nếu từ bắt đầu bằng '##', ta vẫn giữ nguyên tag của từ trước đó
@@ -49,6 +50,7 @@ def reverse_tokenize(ids, tags):
             tokens.append(token_string)
             tags_list.append(tag)
     return list(zip(tokens, tags_list))
+
 
 # meta_data: enc_pos/enc_tag - POS/TAG label encoder
 global meta_data
@@ -65,12 +67,13 @@ num_tag = len(list(enc_tag.classes_))
 local_model_path = "./model_keyphrases/pretrained_model/bert-bilstm-crf-mobile-phone"
 huggingface_model_identifier = "Soraki5th/bert-bilstm-crf-mobile-phone"
 
-def _load_model(verbose = False):
+
+def _load_model(verbose=False):
     # model = EntityModel(num_tag=num_tag)
     # model.load_state_dict(torch.load(MODEL_PATH+f"_{9}.bin", map_location=device))
     # model = EntityModel.from_pretrained("Soraki5th/bert-bilstm-crf-mobile-phone")
     print("Loading model...")
-    
+
     # Check if the model is saved locally
     if os.path.exists(local_model_path):
         # Load the model from the local path
@@ -91,7 +94,8 @@ def _load_model(verbose = False):
     print("model loaded successfully!")
     return model
 
-def _save_model(verbose = False):
+
+def _save_model(verbose=False):
     if verbose:
         print("Loading model from hugging face...")
     # Load the model from the Hugging Face Hub
@@ -102,8 +106,9 @@ def _save_model(verbose = False):
     model.save_pretrained(local_model_path)
     # Move the model to the specified device
     model.to(device)
-    
+
     return model
+
 
 def _predict(model, sentence):
     # join the arr -> string sentence (nargs='+', dont have to use "" when enter the string)
@@ -120,9 +125,13 @@ def _predict(model, sentence):
     tags = []
     # Lặp qua reversed_tokens và hiển thị các token và tag thỏa điều kiện
     for token, tag in reversed_tokens:
-        if tag in ['S', 'B-P', 'I-P']:  # Lọc để chỉ hiển thị các nhãn 'S', 'B-P', và 'I-P'
+        if tag in [
+            "S",
+            "B-P",
+            "I-P",
+        ]:  # Lọc để chỉ hiển thị các nhãn 'S', 'B-P', và 'I-P'
             print(f"{token}\t\t{tag}")
             tokens.append(token)
             tags.append(tag)
-            
+
     return " ".join(tokens), " ".join(tags)
