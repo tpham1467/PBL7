@@ -6,11 +6,14 @@ import config
 from celery import Celery
 from database.mysql_connector import update_jobs
 from services import file_management
-from tasks import preprocess, thegioididong
+from tasks import thegioididong, preprocess
+import config
+from config import read_config_api
 
-redis_url = os.getenv("REDIS_URL", "redis://redis:6379")
+config_celery = read_config_api('CELERY_')
+redis_url = config_celery['CELERY_REDIS_URL']
 
-app = Celery(__name__, broker=redis_url, backend=redis_url)
+app = Celery(__name__, broker=config_celery['CELERY_BROKER_URL'], backend=config_celery['CELERY_RESULT_BACKEND'])
 
 
 @app.task
@@ -48,7 +51,7 @@ def crawl_category_task():
         dir = (
             file_management.__path__["crawl_data"]
             + "/"
-            + file_management.__file_name__["tgdd_categories"]
+            + file_management.__file_name__["tgdd_crawl_category"]
             + ".csv"
         )
         thegioididong.write_to_csv(categories, dir, ["category", "full link"], False)
@@ -68,7 +71,7 @@ def preprocess_data():
         data_path = (
             file_management.__path__["crawl_data"]
             + "/"
-            + file_management.__file_name__["tgdd_description"]
+            + file_management.__file_name__["tgdd_crawl_description"]
             + ".csv"
         )
         preprocess_path = (
@@ -95,13 +98,13 @@ def crawl_end_page_link_category():
         category_dir = (
             file_management.__path__["crawl_data"]
             + "/"
-            + file_management.__file_name__["tgdd_categories"]
+            + file_management.__file_name__["tgdd_crawl_category"]
             + ".csv"
         )
         end_page_link_dir = (
             file_management.__path__["crawl_data"]
             + "/"
-            + file_management.__file_name__["tgdd_end_page_link"]
+            + file_management.__file_name__["tgdd_crawl_end_page_link"]
             + ".csv"
         )
         for i in thegioididong.read_csv(category_dir, True):
@@ -129,13 +132,13 @@ def crawl_product_link():
         end_page_link_dir = (
             file_management.__path__["crawl_data"]
             + "/"
-            + file_management.__file_name__["tgdd_end_page_link"]
+            + file_management.__file_name__["tgdd_crawl_end_page_link"]
             + ".csv"
         )
         product_link_dir = (
             file_management.__path__["crawl_data"]
             + "/"
-            + file_management.__file_name__["tgdd_product_link"]
+            + file_management.__file_name__["tgdd_crawl_product_link"]
             + ".csv"
         )
         result = []
@@ -156,7 +159,7 @@ def crawl_product_link():
 @app.task
 def crawl_description():
     print("-----Begin crawl-----")
-    update_jobs(config.__TASK_KEY__["tgdd_crawl_description_tgdd"], "IN_PROGRESS")
+    update_jobs(config.__TASK_KEY__["tgdd_crawl_description"], "IN_PROGRESS")
     try:
         thegioididong.driver
         product_link_dir = (
@@ -168,7 +171,7 @@ def crawl_description():
         product_description_dir = (
             file_management.__path__["crawl_data"]
             + "/"
-            + file_management.__file_name__["tgdd_description"]
+            + file_management.__file_name__["tgdd_crawl_description"]
             + ".csv"
         )
         result = []
@@ -179,17 +182,17 @@ def crawl_description():
                 data, product_description_dir, ["name", "description"], False, True
             )
     except:
-        update_jobs(config.__TASK_KEY__["tgdd_crawl_description_tgdd"], "FAILED")
-    update_jobs(config.__TASK_KEY__["tgdd_crawl_description_tgdd"], "SUCCESS")
+        update_jobs(config.__TASK_KEY__["tgdd_crawl_description"], "FAILED")
+    update_jobs(config.__TASK_KEY__["tgdd_crawl_description"], "SUCCESS")
     print("-----End crawl-----")
     return result
 
 
 @app.task
 def test_sleep():
-    update_jobs(config.__TASK_KEY__["tgdd_crawl_description_tgdd"], "IN_PROGRESS")
+    update_jobs(config.__TASK_KEY__["tgdd_crawl_description"], "IN_PROGRESS")
 
     thegioididong.test()
 
-    update_jobs(config.__TASK_KEY__["tgdd_crawl_description_tgdd"], "SUCCESS")
+    update_jobs(config.__TASK_KEY__["tgdd_crawl_description"], "SUCCESS")
     print("-----End crawl-----")
