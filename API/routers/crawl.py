@@ -4,8 +4,7 @@ import task
 from celery import chain, group
 from celery.result import AsyncResult
 from database.mysql_connector import (
-    get_task_status,
-    get_tasks_status,
+    is_any_task_in_progress,
     update_jobs,
     update_jobs_by_task_id,
 )
@@ -61,7 +60,7 @@ def crawl_description_tgdd() -> TaskOut:
 @router.get("/start-all-tasks")
 def start_all_tasks() -> list[TaskOut]:
     # Check if there is any task in progress
-    if any(task["status"] == "IN_PROGRESS" for task in get_tasks_status()):
+    if is_any_task_in_progress():
         raise HTTPException(status_code=400, detail="Another task is in progress")
 
     # Initialize an empty list to hold the results of each task

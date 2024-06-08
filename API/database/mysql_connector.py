@@ -239,6 +239,15 @@ def get_all_jobs():
         return []
 
 
+def is_any_task_in_progress() -> bool:
+    cursor = mysqldb.cursor(dictionary=True)
+    query = "SELECT 1 FROM jobs WHERE status = 'IN_PROGRESS' LIMIT 1"
+    cursor.execute(query)
+    result = cursor.fetchone()
+    print(f"is_any_task_in_progress:{result is not None}")
+    return result is not None
+
+
 def get_tasks_status() -> list:
     cursor = mysqldb.cursor(dictionary=True)
     query = "SELECT type, status FROM jobs"
