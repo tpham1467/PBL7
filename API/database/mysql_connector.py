@@ -7,14 +7,14 @@ from config.task_key import __TASK_KEY__
 from entities import Job
 from services import file_management
 
-config_db = read_config_api("DB_")
-print(config_db)
+config = read_config_api("DB_")
+print(config)
 mysqldb = mysql.connector.connect(
     # host="host.docker.internal",
-    host=config_db["DB_HOST"],
+    host=config["DB_HOST"],
     user="root",
     password="root",
-    database=config_db["DB_DATABASE_NAME"],
+    database=config["DB_DATABASE_NAME"],
 )
 
 
