@@ -1,8 +1,14 @@
 # lib
 import config
 import task
+from celery import chain, group
 from celery.result import AsyncResult
-from database.mysql_connector import update_jobs, update_jobs_by_task_id
+from database.mysql_connector import (
+    get_task_status,
+    get_tasks_status,
+    update_jobs,
+    update_jobs_by_task_id,
+)
 
 # entities
 from entities import TaskOut
@@ -29,107 +35,73 @@ except ConnectionError as e:
 
 lock = RedisLock(redis_instance, name="task_id")
 
+print(lock)
+
 
 @router.get("/category-tgdd")
 def crawl_category_tgdd() -> TaskOut:
-    execute_task("tgdd_crawl_category", crawl_category_task)
-
-        task_id = redis_instance.get(config.__TASK_KEY__["tgdd_crawl_category"])
-        print(task_id)
-        if task_id is None or task.app.AsyncResult(task_id).ready():
-            # no task was ever run, or the last task finished already
-            update_jobs(
-                task_key=config.__TASK_KEY__["tgdd_crawl_category"], status="PENDING"
-            )
-            r = crawl_category_task.delay()
-            redis_instance.set(config.__TASK_KEY__["tgdd_crawl_category"], r.task_id)
-            return _to_task_out(r, config.__TASK_KEY__["tgdd_crawl_category"])
-        else:
-            # the last task is still running!
-            raise HTTPException(
-                status_code=400, detail="A task is already being executed"
-            )
-    finally:
-        lock.release()
+    return execute_task("tgdd_crawl_category", crawl_category_task)
 
 
 @router.get("/end-page-link-tgdd")
 def crawl_end_page_tgdd() -> TaskOut:
-    execute_task("tgdd_crawl_end_page_link", crawl_end_page_link_category)
-
-        task_id = redis_instance.get(config.__TASK_KEY__["tgdd_crawl_end_page_link"])
-        print(task_id)
-        if task_id is None or task.app.AsyncResult(task_id).ready():
-            # no task was ever run, or the last task finished already
-            update_jobs(
-                task_key=config.__TASK_KEY__["tgdd_crawl_end_page_link"],
-                status="PENDING",
-            )
-            r = crawl_end_page_link_category.delay()
-            redis_instance.set(
-                config.__TASK_KEY__["tgdd_crawl_end_page_link"], r.task_id
-            )
-            return _to_task_out(r, config.__TASK_KEY__["tgdd_crawl_end_page_link"])
-        else:
-            # the last task is still running!
-            raise HTTPException(
-                status_code=400, detail="A task is already being executed"
-            )
-    finally:
-        lock.release()
+    return execute_task("tgdd_crawl_end_page_link", crawl_end_page_link_category)
 
 
 @router.get("/product-link-tgdd")
 def crawl_product_tgdd() -> TaskOut:
-    execute_task("tgdd_crawl_product_link", crawl_product_link)
+    return execute_task("tgdd_crawl_product_link", crawl_product_link)
 
-        task_id = redis_instance.get(config.__TASK_KEY__["tgdd_crawl_product_link"])
-        print(task_id)
+
+@router.get("/description-tgdd")
+def crawl_description_tgdd() -> TaskOut:
+    return execute_task("tgdd_crawl_description_tgdd", crawl_description)
+
+
+@router.get("/start-all-tasks")
+def start_all_tasks() -> list[TaskOut]:
+    # Check if there is any task in progress
+    if any(task["status"] == "IN_PROGRESS" for task in get_tasks_status()):
+        raise HTTPException(status_code=400, detail="Another task is in progress")
+
+    # Initialize an empty list to hold the results of each task
+    task_results = []
+
+    # Execute each task and append the result to the list
+    task_results.append(execute_task("tgdd_crawl_category", crawl_category_task))
+    task_results.append(
+        execute_task("tgdd_crawl_end_page_link", crawl_end_page_link_category)
+    )
+    task_results.append(execute_task("tgdd_crawl_product_link", crawl_product_link))
+    task_results.append(execute_task("tgdd_crawl_description_tgdd", crawl_description))
+
+    # Return the list of task results
+    return task_results
+
+
+def execute_task(task_key, task_function) -> TaskOut:
+    print(f"{task_key}, {task_function}")
+    try:
+        if not lock.acquire(blocking_timeout=4):
+            raise HTTPException(status_code=500, detail="Could not acquire lock")
+
+        task_id = redis_instance.get(config.__TASK_KEY__[task_key])
+        print(f"task_id1: {task_id}")
+
         if task_id is None or task.app.AsyncResult(task_id).ready():
-            # no task was ever run, or the last task finished already
-            update_jobs(
-                task_key=config.__TASK_KEY__["tgdd_crawl_product_link"],
-                status="PENDING",
-            )
-            r = crawl_product_link.delay()
-            redis_instance.set(
-                config.__TASK_KEY__["tgdd_crawl_product_link"], r.task_id
-            )
-            return _to_task_out(r, config.__TASK_KEY__["tgdd_crawl_product_link"])
+            print(f"task_id2: {task_id}")
+            update_jobs(task_key=config.__TASK_KEY__[task_key], status="PENDING")
+            print("update jobs completed")
+            r = task_function.delay()
+            print(f"result:{r}")
+            redis_instance.set(config.__TASK_KEY__[task_key], r.task_id)
+            return _to_task_out(r, config.__TASK_KEY__[task_key])
         else:
-            # the last task is still running!
             raise HTTPException(
                 status_code=400, detail="A task is already being executed"
             )
     finally:
         lock.release()
-
-
-@router.get("/description-tgdd")
-def crawl_description_tgdd() -> TaskOut:
-    execute_task("tgdd_crawl_description_tgdd", crawl_description)
-
-        task_id = redis_instance.get(config.__TASK_KEY__["tgdd_crawl_description_tgdd"])
-        print(task_id)
-        if task_id is None or task.app.AsyncResult(task_id).ready():
-            # no task was ever run, or the last task finished already
-            update_jobs(
-                task_key=config.__TASK_KEY__["tgdd_crawl_description_tgdd"],
-                status="PENDING",
-            )
-            r = crawl_description.delay()
-            redis_instance.set(
-                config.__TASK_KEY__["tgdd_crawl_description_tgdd"], r.task_id
-            )
-            return _to_task_out(r, config.__TASK_KEY__["tgdd_crawl_description_tgdd"])
-        else:
-            raise HTTPException(
-                status_code=400, detail="A task is already being executed"
-            )
-    finally:
-        if lock_acquired:
-            lock.release()
-
 
 
 def _to_task_out(r: AsyncResult, type: str) -> TaskOut:
