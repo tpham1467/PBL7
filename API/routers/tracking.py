@@ -2,7 +2,7 @@
 import config
 import task
 from celery.result import AsyncResult
-from database.mysql_connector import get_all_jobs
+from database.mysql_connector import get_all_jobs, get_all_jobs_result
 from entities import TaskOut
 from fastapi import APIRouter, HTTPException
 from redis import Redis
@@ -14,10 +14,14 @@ router = APIRouter(prefix="/tracking")
 
 
 @router.get("/")
-def tracking():
-    result = get_all_jobs()
-    print(result)
-    return result
+def tracking_jobs():
+    results = {
+        "jobs": get_all_jobs(),
+        "job_results": get_all_jobs_result(),
+    }
+
+    print(results)
+    return results
 
 
 def _to_task_out(r: AsyncResult) -> TaskOut:

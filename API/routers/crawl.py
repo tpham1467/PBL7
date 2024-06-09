@@ -37,24 +37,30 @@ lock = RedisLock(redis_instance, name="task_id")
 print(lock)
 
 
-@router.get("/category-tgdd")
+@router.get("/tgdd_crawl_category")
 def crawl_category_tgdd() -> TaskOut:
-    return execute_task("tgdd_crawl_category", crawl_category_task)
+    return execute_task(config.__TASK_KEY__["tgdd_crawl_category"], crawl_category_task)
 
 
-@router.get("/end-page-link-tgdd")
+@router.get("/tgdd_crawl_end_page_link")
 def crawl_end_page_tgdd() -> TaskOut:
-    return execute_task("tgdd_crawl_end_page_link", crawl_end_page_link_category)
+    return execute_task(
+        config.__TASK_KEY__["tgdd_crawl_end_page_link"], crawl_end_page_link_category
+    )
 
 
-@router.get("/product-link-tgdd")
+@router.get("/tgdd_crawl_product_link")
 def crawl_product_tgdd() -> TaskOut:
-    return execute_task("tgdd_crawl_product_link", crawl_product_link)
+    return execute_task(
+        config.__TASK_KEY__["tgdd_crawl_product_link"], crawl_product_link
+    )
 
 
-@router.get("/description-tgdd")
+@router.get("/tgdd_crawl_description")
 def crawl_description_tgdd() -> TaskOut:
-    return execute_task("tgdd_crawl_description_tgdd", crawl_description)
+    return execute_task(
+        config.__TASK_KEY__["tgdd_crawl_description"], crawl_description
+    )
 
 
 @router.get("/start-all-tasks")
@@ -72,7 +78,7 @@ def start_all_tasks() -> list[TaskOut]:
         execute_task("tgdd_crawl_end_page_link", crawl_end_page_link_category)
     )
     task_results.append(execute_task("tgdd_crawl_product_link", crawl_product_link))
-    task_results.append(execute_task("tgdd_crawl_description_tgdd", crawl_description))
+    task_results.append(execute_task("tgdd_crawl_description", crawl_description))
 
     # Return the list of task results
     return task_results
@@ -85,14 +91,14 @@ def execute_task(task_key, task_function) -> TaskOut:
             raise HTTPException(status_code=500, detail="Could not acquire lock")
 
         task_id = redis_instance.get(config.__TASK_KEY__[task_key])
-        print(f"task_id1: {task_id}")
+        # print(f"task_id1: {task_id}")
 
         if task_id is None or task.app.AsyncResult(task_id).ready():
-            print(f"task_id2: {task_id}")
+            # print(f"task_id2: {task_id}")
             update_jobs(task_key=config.__TASK_KEY__[task_key], status="PENDING")
-            print("update jobs completed")
+            # print("update jobs completed")
             r = task_function.delay()
-            print(f"result:{r}")
+            # print(f"result:{r}")
             redis_instance.set(config.__TASK_KEY__[task_key], r.task_id)
             return _to_task_out(r, config.__TASK_KEY__[task_key])
         else:
