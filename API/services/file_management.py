@@ -1,3 +1,4 @@
+import csv
 import os
 from os import listdir
 from os.path import isfile, join
@@ -21,6 +22,7 @@ __file_name__["tgdd_crawl_end_page_link"] = "tgdd_crawl_end_page_link"
 __file_name__["tgdd_crawl_product_link"] = "tgdd_crawl_product_link"
 __file_name__["tgdd_crawl_description"] = "tgdd_crawl_description"
 __file_name__["tgdd_description_preprocessed"] = "tgdd_description_preprocessed"
+__file_name__["preprocess"] = "preprocess"
 
 
 def get_human_readable_size(size: int) -> str:
@@ -78,3 +80,17 @@ def get_file_by_name(name: str):
 
 def process_data_file_name(dir: str):
     return os.path.basename(dir)
+
+
+def count_csv_records(file_name):
+    file = get_file_by_name(file_name)
+    if not os.path.isfile(file.dir):
+        return f"The file '{file.name}' does not exist."
+    try:
+        with open(file.dir, mode="r", encoding="utf-8") as csv_file:
+            reader = csv.reader(csv_file)
+            next(reader)  # Skip the header row
+            record_count = sum(1 for row in reader)
+        return f"Number of records: {record_count}"
+    except Exception as e:
+        return f"An error occurred while reading the file: {e}"

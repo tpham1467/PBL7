@@ -73,7 +73,7 @@ def preprocess_data(data_path, preprocess_path):
         df = pd.read_csv(data_path, encoding="utf-8-sig")
         # Apply preprocess
         df["description"] = df["description"].apply(preprocess_text)
-        print(df.head(5))
+        # print(df.head(5))
 
         # if preprocess file not exists then create new file
         if not os.path.exists(preprocess_path):
