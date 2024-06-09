@@ -97,26 +97,42 @@ def initialTable():
     print("__________Done created tables__________")
     print("__________Begin create file and directory__________")
     insert_file_data(
-        file_management.__file_name__["tgdd_end_page_link"],
+        file_management.__file_name__["tgdd_crawl_category"],
         file_management.__path__["crawl_data"]
         + "/"
-        + file_management.__file_name__["tgdd_end_page_link"]
+        + file_management.__file_name__["tgdd_crawl_category"]
         + ".csv",
         "100KB",
     )
     insert_file_data(
-        file_management.__file_name__["tgdd_end_page_link"],
+        file_management.__file_name__["tgdd_crawl_end_page_link"],
         file_management.__path__["crawl_data"]
         + "/"
-        + file_management.__file_name__["tgdd_end_page_link"]
+        + file_management.__file_name__["tgdd_crawl_end_page_link"]
         + ".csv",
         "100KB",
     )
     insert_file_data(
-        file_management.__file_name__["tgdd_end_page_link"],
+        file_management.__file_name__["tgdd_crawl_product_link"],
         file_management.__path__["crawl_data"]
         + "/"
-        + file_management.__file_name__["tgdd_end_page_link"]
+        + file_management.__file_name__["tgdd_crawl_product_link"]
+        + ".csv",
+        "100KB",
+    )
+    insert_file_data(
+        file_management.__file_name__["tgdd_crawl_description"],
+        file_management.__path__["crawl_data"]
+        + "/"
+        + file_management.__file_name__["tgdd_crawl_description"]
+        + ".csv",
+        "100KB",
+    )
+    insert_file_data(
+        file_management.__file_name__["preprocess"],
+        file_management.__path__["crawl_data"]
+        + "/"
+        + file_management.__file_name__["preprocess"]
         + ".csv",
         "100KB",
     )

@@ -16,10 +16,10 @@ __path__ = {}
 __path__["crawl_data"] = "./data"
 __path__["process_data"] = "./process_data"
 __file_name__ = {}
-__file_name__["tgdd_categories"] = "tgdd_categories"
-__file_name__["tgdd_end_page_link"] = "tgdd_end_page_link"
-__file_name__["tgdd_product_link"] = "tgdd_product_link"
-__file_name__["tgdd_description"] = "tgdd_description"
+__file_name__["tgdd_crawl_category"] = "tgdd_crawl_category"
+__file_name__["tgdd_crawl_end_page_link"] = "tgdd_crawl_end_page_link"
+__file_name__["tgdd_crawl_product_link"] = "tgdd_crawl_product_link"
+__file_name__["tgdd_crawl_description"] = "tgdd_crawl_description"
 __file_name__["tgdd_description_preprocessed"] = "tgdd_description_preprocessed"
 
 
