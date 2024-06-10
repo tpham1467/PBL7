@@ -17,6 +17,8 @@ services:
       - ${PORT}:${PORT}
     depends_on:
       - redis
+    networks:
+      - my_network
   worker:
     container_name: worker
     build:
@@ -56,5 +58,23 @@ services:
       - ./KEYPHRASE:/usr/src/app
     ports:
       - ${KEYPHRASE}:${KEYPHRASE}
+    container_name: KEYPHRASE
     depends_on:
       - api
+    networks:
+      - my_network
+  recommender_system:
+    build:
+      context: ./RecommenderSystem
+    volumes:
+      - ./RecommenderSystem:/usr/src/app
+    ports:
+      - ${RecommenderSystem}:${RecommenderSystemDocker}
+    container_name: recommender_system
+    depends_on:
+      - api
+    networks:
+      - my_network
+networks:
+  my_network:
+    driver: bridge
