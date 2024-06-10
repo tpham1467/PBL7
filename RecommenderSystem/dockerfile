@@ -1,0 +1,52 @@
+FROM --platform=linux/amd64 python:3.10.12
+
+WORKDIR /content
+
+ENV FLASK_APP=api.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+COPY . /content
+
+RUN apt-get update
+RUN pip install --upgrade pip
+
+RUN pip install -r requirements.txt
+
+
+RUN pip install -U --no-cache-dir gdown --pre
+RUN gdown https://drive.google.com/u/0/uc?id=1wzSH0cNID_xrZUx4wCVZyc1GJ6iYY7WK
+RUN ls
+
+RUN tar xzf /content/vn_sbert_deploy.tar.gz
+
+RUN pip install transformers
+RUN pip install vncorenlp
+RUN pip install fairseq
+RUN pip install fastBPE
+
+RUN pip install fastapi
+RUN pip install uvicorn
+RUN pip install pyngrok
+RUN pip install pyyaml
+
+RUN mkdir -p vncorenlp/models/wordsegmenter
+RUN wget -q --show-progress https://raw.githubusercontent.com/vncorenlp/VnCoreNLP/master/VnCoreNLP-1.1.1.jar
+RUN wget -q --show-progress https://raw.githubusercontent.com/vncorenlp/VnCoreNLP/master/models/wordsegmenter/vi-vocab
+RUN wget -q --show-progress https://raw.githubusercontent.com/vncorenlp/VnCoreNLP/master/models/wordsegmenter/wordsegmenter.rdr
+RUN mv VnCoreNLP-1.1.1.jar vncorenlp/
+RUN mv vi-vocab vncorenlp/models/wordsegmenter/
+RUN mv wordsegmenter.rdr vncorenlp/models/wordsegmenter/
+
+RUN rm -rf sentence-transformers
+RUN git clone https://github.com/DatCanCode/sentence-transformers
+RUN pip install -e sentence-transformers
+
+RUN apt install -y default-jre
+
+EXPOSE 5000
+
+CMD ["flask","--debug" ,"run"]
+
+

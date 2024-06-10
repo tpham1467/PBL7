@@ -9,8 +9,7 @@ from routers import cli, crawl, data_file, db, preprocess, test, tracking
 app = FastAPI()
 
 origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
+    "*",
 ]
 
 app.add_middleware(
