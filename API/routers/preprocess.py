@@ -26,7 +26,7 @@ def start_preprocess() -> TaskOut:
         if not lock.acquire(blocking_timeout=4):
             raise HTTPException(status_code=500, detail="Could not acquire lock")
         task_id = redis_instance.get(preprocess_task_key)
-        print(task_id)
+        print(f"preprocess task id: {task_id}")
         if task_id is None or task.app.AsyncResult(task_id).ready():
             # no task was ever run, or the last task finished already
             update_jobs(task_key=preprocess_task_key, status="PENDING")

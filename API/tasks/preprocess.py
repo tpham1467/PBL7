@@ -13,15 +13,24 @@ PUNCTUATION_RECORD_COUNT = 0
 
 
 def tokenize(text):
+    if not text:
+        return ""
+    print(f"tokenize: {text}")
     return word_tokenize(text, format="text")
 
 
 # Lowercase
 def lowercase(text):
+    if not text:
+        return ""
+    print(f"lowercase: {text}")
     return text.lower()
 
 
 def remove_punctuation(text):
+    if not text:
+        return ""
+    print(f"remove_punctuation: {text}")
     regex = r"(?<!\d)[.,;:](?!\d)"
     # initializing punctuations string
     punc = """!"#$%&'()*+-/:;<=>?@[\]^_`{|}~"""
@@ -38,6 +47,10 @@ def remove_punctuation(text):
 
 
 def remove_stopwords(text):
+    if not text:
+        return ""
+    print(f"remove_stopwords: {text}")
+
     stops = open("./vietnamese-stopwords-dash.txt", "r", encoding="utf8").read()
     stopwords = [x for x in stops.splitlines()]
     return " ".join([word for word in text.split() if word not in stopwords])
@@ -50,6 +63,7 @@ def preprocess_text(text):
     global PUNCTUATION_RECORD_COUNT
     text = text.replace("\xa0", " ")
     text = tokenize(text)
+    print(text)
     TOKENIZE_RECORD_COUNT += 1
     update_preprocess_tasks("tokenize", TOKENIZE_RECORD_COUNT)
     text = lowercase(text)
@@ -72,6 +86,7 @@ def preprocess_data(data_path, preprocess_path):
         # Read file csv
         df = pd.read_csv(data_path, encoding="utf-8-sig")
         # Apply preprocess
+        print(f"preprocess_data: {len(df)}")
         df["description"] = df["description"].apply(preprocess_text)
         # print(df.head(5))
 

@@ -1,5 +1,9 @@
 # lib
+import re
+from typing import Counter
+
 import config
+import pandas as pd
 import task
 from celery import chain, group
 from celery.result import AsyncResult
@@ -14,6 +18,7 @@ from entities import TaskOut
 from fastapi import APIRouter, HTTPException
 from redis import Redis
 from redis.lock import Lock as RedisLock
+from services import file_management
 from task import (
     crawl_category_task,
     crawl_description,
@@ -113,3 +118,67 @@ def _to_task_out(r: AsyncResult, type: str) -> TaskOut:
     print("Update Task into DB...")
     update_jobs_by_task_id(type, task_id=r.task_id)
     return TaskOut(id=r.task_id, status=r.status)
+
+
+@router.get("/crawl-result")
+def get_crawl_result():
+    data_path = (
+        file_management.__path__["crawl_data"]
+        + "/"
+        + file_management.__file_name__["tgdd_crawl_description"]
+        + ".csv"
+    )
+
+    return analyze_csv(data_path)
+
+
+def get_categories_from_csv(file_path):
+    # Read the CSV file into a DataFrame
+    df = pd.read_csv(file_path)
+
+    # Extract the 'category' column and convert it to a list
+    categories = df["category"].tolist()
+    print(f"categories: {categories}")
+
+    return categories
+
+
+def analyze_csv(file_path):
+
+    category_csv_path = (
+        file_management.__path__["crawl_data"]
+        + "/"
+        + file_management.__file_name__["tgdd_crawl_category"]
+        + ".csv"
+    )
+    categories = get_categories_from_csv(category_csv_path)
+
+    # Load the CSV file into a DataFrame
+    df = pd.read_csv(file_path)
+
+    # Initialize a dictionary to store the word and sentence counts for each category
+    category_stats = {
+        category: {"words_count": 0, "sentence_count": 0} for category in categories
+    }
+
+    # Iterate over each row in the DataFrame
+    for index, row in df.iterrows():
+        # Extract the name and description from the row
+        name = row["name"]
+        description = row["description"]
+
+        # Split the description into words and sentences
+        words = description.split()
+        sentences = description.split("•")
+
+        # Determine the category based on the name
+        for category in categories:
+            if f"/{category}/" in name:
+                # Update the word and sentence counts for the category
+                category_stats[category]["words_count"] += len(words)
+                category_stats[category]["sentence_count"] += (
+                    len(sentences) - 1
+                )  # Subtract 1 because the first element is an empty string
+                break
+
+    return category_stats

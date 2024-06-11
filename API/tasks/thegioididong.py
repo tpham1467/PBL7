@@ -14,10 +14,13 @@ from selenium.webdriver.common.by import By
 
 service = Service()
 options = webdriver.ChromeOptions()
+options.add_argument("enable-automation")
 options.add_argument("--headless")
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-browser-side-navigation")
+options.add_argument("--disable-extensions")
 # Blocking Images and Resources in Selenium
 prefs = {
     "profile.managed_default_content_settings.images": 2,
