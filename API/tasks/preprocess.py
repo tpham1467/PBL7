@@ -50,6 +50,7 @@ def preprocess_text(text):
     global PUNCTUATION_RECORD_COUNT
     text = text.replace("\xa0", " ")
     text = tokenize(text)
+    print(text)
     TOKENIZE_RECORD_COUNT += 1
     update_preprocess_tasks("tokenize", TOKENIZE_RECORD_COUNT)
     text = lowercase(text)
@@ -72,6 +73,7 @@ def preprocess_data(data_path, preprocess_path):
         # Read file csv
         df = pd.read_csv(data_path, encoding="utf-8-sig")
         # Apply preprocess
+        print(f"preprocess_data: {len(df)}")
         df["description"] = df["description"].apply(preprocess_text)
         # print(df.head(5))
 
