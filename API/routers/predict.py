@@ -30,7 +30,10 @@ def predict(request: TextRequest):
     'text': text
     }
     
-    response = requests.post(url, json=incorrect_payload)
+    headers = {
+    "Content-Type": "application/json"
+    }
+    response = requests.post(url, headers=headers, json=incorrect_payload)
     
     data1 = response.json()
 
