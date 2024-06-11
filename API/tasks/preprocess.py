@@ -13,15 +13,24 @@ PUNCTUATION_RECORD_COUNT = 0
 
 
 def tokenize(text):
+    if not text:
+        return ""
+    print(f"tokenize: {text}")
     return word_tokenize(text, format="text")
 
 
 # Lowercase
 def lowercase(text):
+    if not text:
+        return ""
+    print(f"lowercase: {text}")
     return text.lower()
 
 
 def remove_punctuation(text):
+    if not text:
+        return ""
+    print(f"remove_punctuation: {text}")
     regex = r"(?<!\d)[.,;:](?!\d)"
     # initializing punctuations string
     punc = """!"#$%&'()*+-/:;<=>?@[\]^_`{|}~"""
@@ -38,6 +47,10 @@ def remove_punctuation(text):
 
 
 def remove_stopwords(text):
+    if not text:
+        return ""
+    print(f"remove_stopwords: {text}")
+
     stops = open("./vietnamese-stopwords-dash.txt", "r", encoding="utf8").read()
     stopwords = [x for x in stops.splitlines()]
     return " ".join([word for word in text.split() if word not in stopwords])
