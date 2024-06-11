@@ -17,14 +17,14 @@ router = APIRouter(prefix="/model")
 class TextRequest(BaseModel):
     text: str
 
-@router.get("/predict")
-def tracking(request: TextRequest):
+@router.post("/predict")
+def predict(request: TextRequest):
 
     text = request.text
 
     print(text)
 
-    url = 'http://recommender_system:7010/predict'
+    url = 'http://recommender_system:5000/predict'
     
     incorrect_payload = {
     'text': text

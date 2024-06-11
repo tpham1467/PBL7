@@ -17,8 +17,6 @@ services:
       - ${PORT}:${PORT}
     depends_on:
       - redis
-    networks:
-      - my_network
   worker:
     container_name: worker
     build:
@@ -61,8 +59,6 @@ services:
     container_name: KEYPHRASE
     depends_on:
       - api
-    networks:
-      - my_network
   recommender_system:
     build:
       context: ./RecommenderSystem
@@ -73,8 +69,3 @@ services:
     container_name: recommender_system
     depends_on:
       - api
-    networks:
-      - my_network
-networks:
-  my_network:
-    driver: bridge
