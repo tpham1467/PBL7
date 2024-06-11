@@ -352,18 +352,19 @@ def update_jobs_by_task_id(task_key, task_id):
         mysqldb.close()
 
 
-def update_preprocess_tasks(job_id, total_record, created_at=None):
+def update_preprocess_tasks(job_id, total_record, end_at=None):
     print(f"____UPDATE PREPROCESS TASK____: {job_id}, {total_record}")
-    if created_at is None:
-        created_at = datetime.now()
+    if end_at is None:
+        end_at = datetime.now()
     prev_total_record = get_total_record(job_id)
+    print(f"prev total record: {prev_total_record}")
     if prev_total_record != total_record:
         mysqldb = get_db_connection()
         try:
             with mysqldb.cursor() as cursor:
-                query = "UPDATE job_results SET total_record=%s, created_at=%s WHERE job_id=%s"
+                query = "UPDATE job_results SET total_record=%s, end_at=%s WHERE job_type=%s"
                 write_log(query)
-                cursor.execute(query, (total_record, created_at, job_id))
+                cursor.execute(query, (total_record, end_at, job_id))
             mysqldb.commit()
         except mysql.connector.Error as err:
             print(f"Error: {err}")
@@ -476,7 +477,9 @@ def get_job_id(job_type):
 
 
 def get_total_record(job_id: str):
-    return get_all_by_conditional("job_results", f"job_id='{job_id}'", ["total_record"])
+    return get_all_by_conditional(
+        "job_results", f"job_type='{job_id}'", ["total_record"]
+    )
 
 
 def get_job_data():
