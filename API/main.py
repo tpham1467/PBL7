@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # route
-from routers import cli, crawl, data_file, db, preprocess, test, tracking
+from routers import cli, crawl, data_file, db, preprocess, test, tracking, predict
 
 app = FastAPI()
 
@@ -27,3 +27,4 @@ app.include_router(cli.router)
 app.include_router(db.router)
 app.include_router(preprocess.router)
 app.include_router(tracking.router)
+app.include_router(predict.router)

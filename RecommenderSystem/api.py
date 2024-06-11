@@ -6,8 +6,9 @@ sys.path.insert(1, '/content/model')
 sys.path.insert(2, '/content/sentence-transformers')
 from model import predict as model_predict
 import json
+from flask_cors import CORS
 app = Flask(__name__)
-
+CORS(app)
 @app.route('/predict', methods=['POST'])
 def predict():
     if not request.is_json:
