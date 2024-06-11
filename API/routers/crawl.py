@@ -14,7 +14,7 @@ from database.mysql_connector import (
 )
 
 # entities
-from entities import CrawlResult, Product, TaskOut
+from entities import TaskOut
 from fastapi import APIRouter, HTTPException
 from redis import Redis
 from redis.lock import Lock as RedisLock
