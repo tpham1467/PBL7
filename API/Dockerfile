@@ -6,7 +6,15 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 RUN pip install --upgrade pip
+##### Crontab setup #####
+RUN apt-get update && apt-get install -y cron
 
+COPY cron-job-crawl /etc/cron.d/cron-job-crawl
+
+RUN chmod 0644 /etc/cron.d/cron-job-crawl
+
+RUN touch /var/log/cron.log
+##### Requirement install #####
 COPY ./requirements.txt /usr/src/app/requirements.txt
 RUN echo pwd
 COPY ./.env.example /usr/src/app/.env
@@ -28,7 +36,6 @@ RUN apt-get install fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 l
 RUN dpkg -i chrome_114_amd64*.deb
 RUN apt-get install -f
 
-
 # Download chrome driver
 RUN apt-get install curl -y
 RUN CHROME_DRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE) && \
@@ -38,3 +45,6 @@ RUN CHROME_DRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_
 RUN unzip chromedriver_linux64.zip
 RUN mv chromedriver /usr/bin/chromedriver
 
+##### Cronjob run #####
+RUN crontab /etc/cron.d/cron-job-crawl
+RUN touch /var/log/cron.log
